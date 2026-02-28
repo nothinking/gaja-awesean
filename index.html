@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gaja-awesean</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #0d1117;
+    --bg-card-hover: #111820;
+    --border: #1e2530;
+    --text: #c0c8d4;
+    --text-dim: #5a6370;
+    --green: #00ff41;
+    --green-dim: #00aa2a;
+    --green-glow: rgba(0, 255, 65, 0.15);
+    --cyan: #0affed;
+    --cyan-dim: #08b8ad;
+    --cyan-glow: rgba(10, 255, 237, 0.15);
+    --amber: #ffb627;
+    --amber-dim: #b8800a;
+    --amber-glow: rgba(255, 182, 39, 0.15);
+    --pink: #ff2d6b;
+    --pink-dim: #b81e4a;
+    --pink-glow: rgba(255, 45, 107, 0.15);
+  }
+
+  html {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    background: var(--bg);
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  /* scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  body {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: left;
+    width: 100%;
+    max-width: 720px;
+    padding: 60px 0 12px;
+  }
+
+  .title {
+    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    user-select: none;
+    text-shadow: 0 0 10px var(--green-glow), 0 0 30px var(--green-glow);
+  }
+
+  .title-prompt {
+    color: var(--text-dim);
+    margin-right: 8px;
+    text-shadow: none;
+  }
+
+  .title-text {
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .title-cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.1em;
+    background: var(--green);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+    box-shadow: 0 0 6px var(--green-glow);
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .subtitle {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .subtitle .prompt {
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  /* ===== GRID ===== */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 720px;
+    width: 100%;
+    padding: 28px 0 60px;
+  }
+
+  @media (max-width: 580px) {
+    .grid {
+      grid-template-columns: 1fr;
+      max-width: 380px;
+      gap: 18px;
+    }
+    .header { padding: 36px 0 8px; }
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.3s ease,
+      background 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    /* stagger entrance */
+    opacity: 0;
+    transform: translateY(16px);
+    animation: cardIn 0.4s ease forwards;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* titlebar */
+  .card-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.015);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .bar-title {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-left: 6px;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+  }
+
+  /* card body */
+  .card-body {
+    padding: 18px 18px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-emoji {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 12px;
+    display: inline-block;
+    width: fit-content;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: saturate(1.2);
+  }
+
+  .card:hover .card-emoji {
+    transform: scale(1.15);
+  }
+
+  .card-name {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--glow);
+    transition: text-shadow 0.3s ease;
+  }
+
+  .card:hover .card-name {
+    text-shadow: 0 0 14px var(--glow), 0 0 30px var(--glow);
+  }
+
+  .card-desc {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .tag {
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 0;
+    color: var(--accent);
+    opacity: 0.7;
+    letter-spacing: 0.02em;
+  }
+
+  .tag::before { content: '['; }
+  .tag::after  { content: ']'; }
+
+  /* card hover */
+  .card:hover {
+    border-color: var(--accent);
+    background: var(--bg-card-hover);
+    box-shadow:
+      0 0 20px var(--glow),
+      inset 0 0 20px var(--glow);
+  }
+
+  .card:active {
+    filter: brightness(1.3);
+    transition-duration: 0.05s;
+  }
+
+  /* accent per card */
+  .card:nth-child(1) { --accent: var(--green);  --glow: var(--green-glow); }
+  .card:nth-child(2) { --accent: var(--cyan);   --glow: var(--cyan-glow); }
+  .card:nth-child(3) { --accent: var(--amber);  --glow: var(--amber-glow); }
+  .card:nth-child(4) { --accent: var(--pink);   --glow: var(--pink-glow); }
+
+  /* github button */
+  .card-github {
+    position: absolute;
+    top: 7px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-dim);
+    transition: color 0.2s, background 0.2s;
+    z-index: 2;
+    opacity: 0;
+  }
+
+  .card:hover .card-github {
+    opacity: 1;
+  }
+
+  .card-github:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--accent);
+  }
+
+  .card-github svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+
+  @media (hover: none) {
+    .card-github { opacity: 1; }
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    padding: 0 0 40px;
+    width: 100%;
+    max-width: 720px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .footer span { color: var(--green-dim); }
+
+  .footer a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border);
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .footer a:hover {
+    color: var(--green);
+    border-color: var(--green-dim);
+  }
+
+  /* subtle ambient flicker on page load */
+  @keyframes screenOn {
+    0%   { opacity: 0; filter: brightness(3) saturate(0); }
+    10%  { opacity: 1; filter: brightness(1.5) saturate(0.5); }
+    30%  { filter: brightness(0.9) saturate(1); }
+    100% { filter: brightness(1) saturate(1); }
+  }
+
+  .page-wrap {
+    animation: screenOn 0.8s ease-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<header class="header">
+  <h1 class="title">
+    <span class="title-prompt">&gt;</span>
+    <span class="title-text" id="title"></span>
+    <span class="title-cursor"></span>
+  </h1>
+  <p class="subtitle"><span class="prompt">$</span> ls ~/apps/</p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer class="footer">
+  <span>//</span> made by <a href="https://github.com/nothinking" target="_blank" rel="noopener">seango</a>
+</footer>
+
+</div>
+
+<script>
+// ===== APP DATA =====
+const apps = [
+  {
+    name: "MovieTalk",
+    emoji: "\uD83C\uDFAC",
+    description: "YouTube \uC601\uC5B4 \uBC1C\uC74C \uD559\uC2B5",
+    url: "https://movietalk-psi.vercel.app",
+    github: "https://github.com/nothinking/movietalk",
+    tags: ["React", "Vite", "Claude API"]
+  },
+  {
+    name: "YT Organizer",
+    emoji: "\uD83D\uDCFA",
+    description: "YouTube \uAD6C\uB3C5 \uCC44\uB110 \uCE74\uD14C\uACE0\uB9AC \uC815\uB9AC",
+    url: "https://owesean-yt-organizer.vercel.app",
+    github: "https://github.com/nothinking/owesean-yt-organizer",
+    tags: ["Next.js", "Supabase", "TypeScript"]
+  },
+  {
+    name: "Jeju Weather",
+    emoji: "\u26C5",
+    description: "\uC81C\uC8FC\uB3C4 \uC2E4\uC2DC\uAC04 \uB0A0\uC528\xB7CCTV \uB300\uC2DC\uBCF4\uB4DC",
+    url: "https://nothinking.github.io/awesean-jeju-weather/",
+    github: "https://github.com/nothinking/awesean-jeju-weather",
+    tags: ["Vanilla JS", "CCTV", "Windy"]
+  },
+  {
+    name: "Hit the Coffee",
+    emoji: "\u2615",
+    description: "AI \uBA54\uB274 \uC778\uC2DD \uB2E8\uCCB4 \uCEE4\uD53C \uC8FC\uBB38",
+    url: "https://hit-the-coffee.vercel.app",
+    github: "https://github.com/nothinking/hit-the-coffee",
+    tags: ["Next.js 15", "AI OCR", "Supabase"]
+  }
+];
+
+// ===== TYPING ANIMATION =====
+const titleEl = document.getElementById('title');
+const titleText = 'gaja-awesean';
+let charIdx = 0;
+function typeNext() {
+  if (charIdx < titleText.length) {
+    titleEl.textContent += titleText[charIdx];
+    charIdx++;
+    setTimeout(typeNext, 60 + Math.random() * 40);
+  }
+}
+setTimeout(typeNext, 400);
+
+// ===== RENDER CARDS =====
+const githubSVG = '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.64 7.64 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>';
+
+const barNames = ['movie-talk', 'yt-organizer', 'jeju-weather', 'hit-the-coffee'];
+
+const grid = document.getElementById('grid');
+apps.forEach((app, i) => {
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.href = app.url;
+  card.target = '_blank';
+  card.rel = 'noopener';
+  card.style.setProperty('--delay', `${0.6 + i * 0.12}s`);
+
+  const tagsHTML = app.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+  card.innerHTML = `
+    <div class="card-bar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="bar-title">~/${barNames[i]}</span>
+    </div>
+    <div class="card-body">
+      <span class="card-emoji">${app.emoji}</span>
+      <h2 class="card-name">${app.name}</h2>
+      <p class="card-desc">${app.description}</p>
+      <div class="card-tags">${tagsHTML}</div>
+    </div>
+    <span class="card-github" title="GitHub" data-github="${app.github}">${githubSVG}</span>
+  `;
+
+  card.querySelector('.card-github').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(app.github, '_blank', 'noopener');
+  });
+
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
